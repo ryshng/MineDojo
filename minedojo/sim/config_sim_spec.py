@@ -22,7 +22,7 @@ class SimSpec:
         self,
         *,
         sim_name: str,
-        agent_count: int = 1,
+        agent_count: int = 2,
         obs_handlers: List[TranslationHandler],
         action_handlers: List[TranslationHandler],
         agent_handlers: List[Handler],

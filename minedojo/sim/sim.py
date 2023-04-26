@@ -367,7 +367,7 @@ class MineDojoSim(gym.Env):
         server_quit_handlers = []
         self._sim_spec = SimSpec(
             sim_name=sim_name,
-            agent_count=1,
+            agent_count=2,
             obs_handlers=obs_handlers,
             action_handlers=action_handlers,
             agent_handlers=agent_handlers,
