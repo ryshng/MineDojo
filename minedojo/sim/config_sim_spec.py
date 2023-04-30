@@ -22,7 +22,7 @@ class SimSpec:
         self,
         *,
         sim_name: str,
-        agent_count: int = 2,
+        agent_count: int = 1,
         obs_handlers: List[TranslationHandler],
         action_handlers: List[TranslationHandler],
         agent_handlers: List[Handler],
@@ -37,7 +37,7 @@ class SimSpec:
         assert agent_count == 1, "TODO"
         self._agent_count = agent_count
         self._agent_names = [f"agent_{role}" for role in range(agent_count)]
-
+        # agent_names = ['agent_0', 'agent_1', 'agent_2', ..., 'agent_n']
         self._obs_handlers = obs_handlers
         self._action_handlers = action_handlers
         self._agent_handlers = agent_handlers
@@ -45,6 +45,7 @@ class SimSpec:
         self._world_generator_handlers = world_generator_handlers
         self._server_decorator_handlers = server_decorator_handlers
         self._server_quit_handlers = server_quit_handlers
+        # each agent have the same handlers
         self._agent_start_handlers_list = [
             agent_start_handlers for _ in range(agent_count)
         ]
@@ -85,6 +86,19 @@ class SimSpec:
         else:
             return space
 
+    # Crates nested dictionary, outer dictionary corresponds to the agent name that is
+    # mapped to its observations (the inner dictionary), where the observations corresponds to its name
+    # spaces.Dict({
+    #   'agent_0': spaces.Dict({
+    #     'obs1': < >
+    #     'obs2': < >
+    #    }),
+    #   'agent_1': spaces.Dict({
+    #     'obs1': < >
+    #     'obs2': < >
+    #    })
+    # })
+
     def create_observation_space(self):
         return self._singlify(
             spaces.Dict(
@@ -96,7 +110,7 @@ class SimSpec:
                 }
             )
         )
-
+    # Same case as the observation dictionary
     def create_action_space(self):
         return self._singlify(
             spaces.Dict(

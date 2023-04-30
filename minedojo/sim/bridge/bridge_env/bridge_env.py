@@ -46,7 +46,7 @@ class BridgeEnv:
     def __init__(
         self,
         *,
-        agent_count: int = 1,
+        agent_count: int = 2,
         is_fault_tolerant: bool = True,
         seed: Optional[int] = None,
     ):
@@ -79,7 +79,13 @@ class BridgeEnv:
             self._instances[0], agent_xmls[0], self._get_token(0, episode_uid)
         )  # Master
         if self._agent_count > 1:
-            raise ValueError("TODO")
+            #raise ValueError("TODO")
+            mc_server_ip, mc_server_port = self._find_ip_and_port(self._instances[0], self._get_token(1, episode_uid))
+            # update slave instnaces xmls with the server port and IP and setup their missions.
+            for slave_instance, slave_xml, role in list(zip(
+                    self._instances, agent_xmls, range(1, self._agent_count + 1)))[1:]:
+                self._setup_slave_master_connection_info(slave_xml, mc_server_ip, mc_server_port)
+                self._send_mission(slave_instance, slave_xml, self._get_token(role, episode_uid))
 
         return self._query_first_obs()
 
@@ -314,3 +320,43 @@ class BridgeEnv:
     @staticmethod
     def _get_token(role: int, ep_uid: str):
         return f"{ep_uid}:{str(role)}:0"
+    
+    @staticmethod
+    def _find_ip_and_port(self, instance: MinecraftInstance, token: str): # -> Tuple[str, str]:
+        # calling Find on the master client to get the server port
+        sock = instance.client_socket
+
+        # try until you get something valid
+        port = 0
+        tries = 0
+        start_time = time.time()
+
+        logger.info("Attempting to find_ip: {instance}".format(instance=instance))
+        while port == 0 and time.time() - start_time <= MAX_WAIT:
+            instance.client_socket_send_message(
+                sock, ("<Find>" + token + "</Find>").encode()
+            )
+            reply = instance.client_socket_recv_message(sock)
+            port, = struct.unpack('!I', reply)
+            tries += 1
+            time.sleep(0.1)
+            
+        if port == 0:
+            raise Exception("Failed to find master server port!")
+        #self.integratedServerPort = port  # should/can this even be cached?
+        logger.warning("MineRL agent is public, connect on port {} with Minecraft 1.11".format(port))
+
+        # go ahead and set port for all non-controller clients
+        return instance._host, str(port)
+    
+    @staticmethod
+    def _setup_slave_master_connection_info(self,
+                                            slave_xml: etree.Element,
+                                            mc_server_ip: str,
+                                            mc_server_port: str):
+        # note that this server port is different than above client port, and will be set later
+        e = etree.Element(
+            "{http://ProjectMalmo.microsoft.com}" + "MinecraftServerConnection",
+            attrib={"address": str(mc_server_ip), "port": str(mc_server_port)},
+        )
+        slave_xml.insert(2, e)
