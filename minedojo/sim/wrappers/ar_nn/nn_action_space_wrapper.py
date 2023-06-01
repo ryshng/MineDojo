@@ -21,14 +21,20 @@ class NNActionSpaceWrapper(gym.Wrapper):
         discretized_camera_interval: Union[int, float] = 15,
         strict_check: bool = True,
     ):
-        assert (
-            "equip" in env.action_space.keys()
-            and "place" in env.action_space.keys()
-            and "swap_slot" not in env.action_space.keys()
-        ), "please use this wrapper with event_level_control = True"
-        assert (
-            "inventory" in env.observation_space.keys()
-        ), f"missing inventory from obs space"
+        agents = env.action_space.keys()
+        k_agents = list(agents)
+        res2 = env.action_space[k_agents[0]].keys()
+        res3 = env.action_space[k_agents[1]]
+        res1 = env.action_space
+        for agent_i in agents:
+            assert (
+                "equip" in env.action_space[agent_i].keys()
+                and "place" in env.action_space[agent_i].keys()
+                and "swap_slot" not in env.action_space[agent_i].keys()
+            ), "please use this wrapper with event_level_control = True"
+            assert (
+                "inventory" in env.observation_space[agent_i].keys()
+            ), f"missing inventory from obs space"
         super().__init__(env=env)
 
         n_pitch_bins = math.ceil(360 / discretized_camera_interval) + 1

@@ -34,7 +34,7 @@ class SimSpec:
         seed: Optional[int] = None,
     ):
         self._sim_name = sim_name
-        assert agent_count == 1, "TODO"
+        # assert agent_count == 1, "TODO"
         self._agent_count = agent_count
         self._agent_names = [f"agent_{role}" for role in range(agent_count)]
         # agent_names = ['agent_0', 'agent_1', 'agent_2', ..., 'agent_n']

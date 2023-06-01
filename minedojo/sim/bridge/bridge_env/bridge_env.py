@@ -46,11 +46,11 @@ class BridgeEnv:
     def __init__(
         self,
         *,
-        agent_count: int = 2,
+        agent_count: int = 1,
         is_fault_tolerant: bool = True,
         seed: Optional[int] = None,
     ):
-        assert agent_count == 1, "TODO"
+    #    assert agent_count == 1, "TODO"
         self._agent_count = agent_count
         self._rng = np.random.default_rng(seed=seed)
         self._instances: List[MinecraftInstance] = []
@@ -79,7 +79,7 @@ class BridgeEnv:
             self._instances[0], agent_xmls[0], self._get_token(0, episode_uid)
         )  # Master
         if self._agent_count > 1:
-            #raise ValueError("TODO")
+            # raise ValueError("TODO")
             mc_server_ip, mc_server_port = self._find_ip_and_port(self._instances[0], self._get_token(1, episode_uid))
             # update slave instnaces xmls with the server port and IP and setup their missions.
             for slave_instance, slave_xml, role in list(zip(

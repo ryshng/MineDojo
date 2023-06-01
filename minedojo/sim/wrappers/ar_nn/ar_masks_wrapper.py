@@ -15,45 +15,56 @@ class ARMasksWrapper(gym.ObservationWrapper):
         env: Union[MineDojoSim, gym.Wrapper],
         action_categories_and_num_args: Optional[dict[str, int]] = None,
     ):
-        assert "inventory" in env.observation_space.keys()
-        assert "nearby_tools" in env.observation_space.keys()
-        assert "table" in env.observation_space["nearby_tools"].keys()
-        assert "furnace" in env.observation_space["nearby_tools"].keys()
-        assert isinstance(
-            env.action_space, spaces.MultiDiscrete
-        ), "please use this wrapper with `NNActionSpaceWrapper!`"
-        assert (
-            len(env.action_space.nvec) == 8
-        ), "please use this wrapper with `NNActionSpaceWrapper!`"
+        agents = env.observation_space.keys()
+        k_agents = list(agents)
+        res1 = env.observation_space[k_agents[0]]
+        res2 = env.observation_space[k_agents[0]]["nearby_tools"].keys()
+        res3 = env.action_space.nvec
+        for agent_i in agents:
+            assert "inventory" in env.observation_space[agent_i].keys()
+            assert "nearby_tools" in env.observation_space[agent_i].keys()
+            assert "table" in env.observation_space[agent_i]["nearby_tools"].keys()
+            assert "furnace" in env.observation_space[agent_i]["nearby_tools"].keys()
+            assert isinstance(
+                env.action_space, spaces.MultiDiscrete
+            ), "please use this wrapper with `NNActionSpaceWrapper!`"
+            assert (
+                len(env.action_space.nvec) == 8
+            ), "please use this wrapper with `NNActionSpaceWrapper!`"
         super().__init__(env=env)
 
         action_categories_and_num_args = action_categories_and_num_args or dict(
             no_op=0, use=0, drop=0, attack=0, craft=1, equip=1, place=1, destroy=1
         )
-        obs_space = env.observation_space
-        n_fn_actions = len(action_categories_and_num_args)
-        obs_space["masks"] = spaces.Dict(
-            {
-                "action_type": spaces.Box(
-                    low=0, high=1, shape=(n_fn_actions,), dtype=bool
-                ),
-                "action_arg": spaces.Box(
-                    low=0, high=1, shape=(n_fn_actions, 1), dtype=bool
-                ),
-                "equip": spaces.Box(low=0, high=1, shape=(MC.N_INV_SLOTS,), dtype=bool),
-                "place": spaces.Box(low=0, high=1, shape=(MC.N_INV_SLOTS,), dtype=bool),
-                "destroy": spaces.Box(
-                    low=0, high=1, shape=(MC.N_INV_SLOTS,), dtype=bool
-                ),
-                "craft_smelt": spaces.Box(
-                    low=0, high=1, shape=(len(MC.ALL_CRAFT_SMELT_ITEMS),), dtype=bool
-                ),
-            }
-        )
-        # remove `full_stats`
-        if "full_stats" in obs_space.keys():
-            del obs_space["full_stats"]
-        self.observation_space = obs_space
+
+        multi_obs_space = {}
+        for agent_i in agents:
+            obs_space = env.observation_space[agent_i]
+            n_fn_actions = len(action_categories_and_num_args)
+            obs_space["masks"] = spaces.Dict(
+                {
+                    "action_type": spaces.Box(
+                        low=0, high=1, shape=(n_fn_actions,), dtype=bool
+                    ),
+                    "action_arg": spaces.Box(
+                        low=0, high=1, shape=(n_fn_actions, 1), dtype=bool
+                    ),
+                    "equip": spaces.Box(low=0, high=1, shape=(MC.N_INV_SLOTS,), dtype=bool),
+                    "place": spaces.Box(low=0, high=1, shape=(MC.N_INV_SLOTS,), dtype=bool),
+                    "destroy": spaces.Box(
+                        low=0, high=1, shape=(MC.N_INV_SLOTS,), dtype=bool
+                    ),
+                    "craft_smelt": spaces.Box(
+                        low=0, high=1, shape=(len(MC.ALL_CRAFT_SMELT_ITEMS),), dtype=bool
+                    ),
+                }
+            )
+            # remove `full_stats`
+            if "full_stats" in obs_space.keys():
+                del obs_space["full_stats"]
+            # add obs to multi obs
+            multi_obs_space[agent_i] = obs_space
+        self.observation_space = multi_obs_space
         # a_arg_mask can be determined now and will not change
         self._a_arg_mask = np.array(
             list(action_categories_and_num_args.values()), dtype=bool
