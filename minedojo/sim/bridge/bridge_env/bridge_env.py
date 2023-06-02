@@ -78,17 +78,20 @@ class BridgeEnv:
         self._send_mission(
             self._instances[0], agent_xmls[0], self._get_token(0, episode_uid)
         )  # Master
+        self._send_mission(
+            self._instances[1], agent_xmls[0], self._get_token(1, episode_uid)
+        )  # Master
         if self._agent_count > 1:
             # raise ValueError("TODO")
             token = self._get_token(1, episode_uid)
             instance1 = self._instances[0]
             instance2 = self._instances[1]
-            mc_server_ip, mc_server_port = self._find_ip_and_port(self._instances[0], self._get_token(1, episode_uid))
+            # mc_server_ip, mc_server_port = self._find_ip_and_port(self._instances[0], self._get_token(1, episode_uid))
             # update slave instnaces xmls with the server port and IP and setup their missions.
-            for slave_instance, slave_xml, role in list(zip(
-                    self._instances, agent_xmls, range(1, self._agent_count + 1)))[1:]:
-                self._setup_slave_master_connection_info(slave_xml, mc_server_ip, mc_server_port)
-                self._send_mission(slave_instance, slave_xml, self._get_token(role, episode_uid))
+            # for slave_instance, slave_xml, role in list(zip(
+            #        self._instances, agent_xmls, range(1, self._agent_count + 1)))[1:]:
+            #    self._setup_slave_master_connection_info(slave_xml, mc_server_ip, mc_server_port)
+            #    self._send_mission(slave_instance, slave_xml, self._get_token(role, episode_uid))
 
         return self._query_first_obs()
 
@@ -336,10 +339,8 @@ class BridgeEnv:
 
         logger.info("Attempting to find_ip: {instance}".format(instance=instance))
         while port == 0 and time.time() - start_time <= MAX_WAIT:
-            instance.client_socket_send_message(
-                sock, ("<Find>" + token + "</Find>").encode()
-            )
-            reply = instance.client_socket_recv_message(sock)
+            instance.client_socket_send_message(("<Find>" + token + "</Find>").encode())
+            reply = instance.client_socket_recv_message()
             port, = struct.unpack('!I', reply)
             tries += 1
             time.sleep(0.1)
