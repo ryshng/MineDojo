@@ -420,17 +420,18 @@ class MineDojoSim(gym.Env):
         xml = etree.fromstring(self._sim_spec.to_xml(episode_id))
 
         # proces through all observation
-        raw_obs2 = self._bridge_env.reset(episode_id, [xml])
-        for agent_i in raw_obs2:
+        multi_raw_obs = self._bridge_env.reset(episode_id, [xml])
+        for agent_i in multi_raw_obs:
             print(agent_i)
-            # obs_n[agent_i], info_n[agent_i] = self._process_raw_obs(raw_obs_i)
-            # self._prev_obs[agent_i], self._prev_info[agent_i] = deepcopy(obs_n[agent_i]), deepcopy(info_n[agent_i])
-            # self._prev_obs, self._prev_info = deepcopy(obs_n[agent_i]), deepcopy(info_n[agent_i])
-        # return obs_n[0]
-        raw_obs = self._bridge_env.reset(episode_id, [xml])[0]
-        obs, info = self._process_raw_obs(raw_obs)
-        self._prev_obs, self._prev_info = deepcopy(obs), deepcopy(info)
-        return obs
+            raw_obs_i = multi_raw_obs[agent_i]
+            obs_n[agent_i], info_n[agent_i] = self._process_raw_obs(raw_obs_i)
+            self._prev_obs[agent_i], self._prev_info[agent_i] = deepcopy(obs_n[agent_i]), deepcopy(info_n[agent_i])
+            self._prev_obs, self._prev_info = deepcopy(obs_n[agent_i]), deepcopy(info_n[agent_i])
+        return obs_n
+        #raw_obs = self._bridge_env.reset(episode_id, [xml])[0]
+        #obs, info = self._process_raw_obs(raw_obs)
+        #self._prev_obs, self._prev_info = deepcopy(obs), deepcopy(info)
+        #return obs
 
 
     def step(self, action: dict):

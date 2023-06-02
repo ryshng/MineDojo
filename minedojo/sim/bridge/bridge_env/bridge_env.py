@@ -46,7 +46,7 @@ class BridgeEnv:
     def __init__(
         self,
         *,
-        agent_count: int = 1,
+        agent_count: int = 2,
         is_fault_tolerant: bool = True,
         seed: Optional[int] = None,
     ):
@@ -80,6 +80,9 @@ class BridgeEnv:
         )  # Master
         if self._agent_count > 1:
             # raise ValueError("TODO")
+            token = self._get_token(1, episode_uid)
+            instance1 = self._instances[0]
+            instance2 = self._instances[1]
             mc_server_ip, mc_server_port = self._find_ip_and_port(self._instances[0], self._get_token(1, episode_uid))
             # update slave instnaces xmls with the server port and IP and setup their missions.
             for slave_instance, slave_xml, role in list(zip(
@@ -322,7 +325,7 @@ class BridgeEnv:
         return f"{ep_uid}:{str(role)}:0"
     
     @staticmethod
-    def _find_ip_and_port(self, instance: MinecraftInstance, token: str): # -> Tuple[str, str]:
+    def _find_ip_and_port(instance: MinecraftInstance, token: str): # -> Tuple[str, str]:
         # calling Find on the master client to get the server port
         sock = instance.client_socket
 
