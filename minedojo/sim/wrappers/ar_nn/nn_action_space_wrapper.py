@@ -21,11 +21,11 @@ class NNActionSpaceWrapper(gym.Wrapper):
         discretized_camera_interval: Union[int, float] = 15,
         strict_check: bool = True,
     ):
-        agents = env.action_space.keys()
-        k_agents = list(agents)
-        res2 = env.action_space[k_agents[0]].keys()
-        res3 = env.action_space[k_agents[1]]
-        res1 = env.action_space
+        agents = env.action_space
+        multi_obs_key = list(agents)
+        # res2 = env.action_space[k_agents[0]].keys()
+        # res3 = env.action_space[k_agents[1]]
+        # res1 = env.action_space
         for agent_i in agents:
             assert (
                 "equip" in env.action_space[agent_i].keys()

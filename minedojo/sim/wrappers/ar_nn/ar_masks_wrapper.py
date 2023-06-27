@@ -15,7 +15,7 @@ class ARMasksWrapper(gym.ObservationWrapper):
         env: Union[MineDojoSim, gym.Wrapper],
         action_categories_and_num_args: Optional[dict[str, int]] = None,
     ):
-        agents = env.observation_space.keys()
+        agents = env.observation_space
         k_agents = list(agents)
         res1 = env.observation_space[k_agents[0]]
         res2 = env.observation_space[k_agents[0]]["nearby_tools"].keys()

@@ -49,6 +49,7 @@ class SimSpec:
         self._agent_start_handlers_list = [
             agent_start_handlers for _ in range(agent_count)
         ]
+        res = self._agent_start_handlers_list
 
         # check that the obs/action have no duplicate to_strings
         assert len([o.to_string() for o in self._obs_handlers]) == len(

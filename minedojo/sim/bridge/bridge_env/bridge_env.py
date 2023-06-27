@@ -78,20 +78,17 @@ class BridgeEnv:
         self._send_mission(
             self._instances[0], agent_xmls[0], self._get_token(0, episode_uid)
         )  # Master
-        self._send_mission(
-            self._instances[1], agent_xmls[0], self._get_token(1, episode_uid)
-        )  # Master
+        # self._send_mission(
+        #    self._instances[1], agent_xmls[0], self._get_token(1, episode_uid)
+        #)  # Master
+        agent2_xml = agent_xmls
         if self._agent_count > 1:
             # raise ValueError("TODO")
-            token = self._get_token(1, episode_uid)
-            instance1 = self._instances[0]
-            instance2 = self._instances[1]
-            # mc_server_ip, mc_server_port = self._find_ip_and_port(self._instances[0], self._get_token(1, episode_uid))
-            # update slave instnaces xmls with the server port and IP and setup their missions.
-            # for slave_instance, slave_xml, role in list(zip(
-            #        self._instances, agent_xmls, range(1, self._agent_count + 1)))[1:]:
-            #    self._setup_slave_master_connection_info(slave_xml, mc_server_ip, mc_server_port)
-            #    self._send_mission(slave_instance, slave_xml, self._get_token(role, episode_uid))
+            master_ip, master_port = self._find_ip_and_port(self._instances[0], self._get_token(1, episode_uid))
+            #update slave instances xmls with the server port and IP and setup their missions.
+
+            self._setup_slave_master_connection_info(agent2_xml, master_ip, master_port)
+            self._send_mission(self._instances[1], agent2_xml, self._get_token(1, episode_uid))
 
         return self._query_first_obs()
 
@@ -330,32 +327,33 @@ class BridgeEnv:
     @staticmethod
     def _find_ip_and_port(instance: MinecraftInstance, token: str): # -> Tuple[str, str]:
         # calling Find on the master client to get the server port
-        sock = instance.client_socket
+        # sock = instance.client_socket
 
         # try until you get something valid
-        port = 0
-        tries = 0
-        start_time = time.time()
+        # port = 0
+        # tries = 0
+        # start_time = time.time()
 
-        logger.info("Attempting to find_ip: {instance}".format(instance=instance))
-        while port == 0 and time.time() - start_time <= MAX_WAIT:
-            instance.client_socket_send_message(("<Find>" + token + "</Find>").encode())
-            reply = instance.client_socket_recv_message()
-            port, = struct.unpack('!I', reply)
-            tries += 1
-            time.sleep(0.1)
+        # logger.info("Attempting to find_ip: {instance}".format(instance=instance))
+        # while port == 0 and time.time() - start_time <= MAX_WAIT:
+        #    instance.client_socket_send_message(("<Find>" + token + "</Find>").encode())
+        #    reply = instance.client_socket_recv_message()
+        #    port, = struct.unpack('!I', reply)
+        #    tries += 1
+        #    time.sleep(0.1)
             
-        if port == 0:
-            raise Exception("Failed to find master server port!")
-        #self.integratedServerPort = port  # should/can this even be cached?
-        logger.warning("MineRL agent is public, connect on port {} with Minecraft 1.11".format(port))
+        # if port == 0:
+        #    raise Exception("Failed to find master server port!")
+        # self.integratedServerPort = port  # should/can this even be cached?
+        # logger.warning("MineRL agent is public, connect on port {} with Minecraft 1.11".format(port))
 
         # go ahead and set port for all non-controller clients
-        return instance._host, str(port)
+        master_host = instance.host
+        master_port = instance.port
+        return master_host, str(master_port)
     
     @staticmethod
-    def _setup_slave_master_connection_info(self,
-                                            slave_xml: etree.Element,
+    def _setup_slave_master_connection_info(slave_xml: etree.Element,
                                             mc_server_ip: str,
                                             mc_server_port: str):
         # note that this server port is different than above client port, and will be set later

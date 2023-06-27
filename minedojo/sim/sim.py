@@ -203,7 +203,7 @@ class MineDojoSim(gym.Env):
                 ), f"Invalid biome id {specified_biome}"
             else:
                 raise ValueError(f"invalid biome type {specified_biome}")
-
+        print(world_seed)
         # configure obs handlers
         obs_handlers = [
             handlers.POVObservation(image_size, False),
@@ -307,6 +307,7 @@ class MineDojoSim(gym.Env):
                 )
             )
         self.start_position = start_position
+        print(start_position)
         if start_position is not None:
             agent_start_handlers.append(
                 handlers.AgentStartPlacement(
@@ -317,6 +318,7 @@ class MineDojoSim(gym.Env):
                     pitch=start_position["pitch"],
                 )
             )
+        print(start_position)
         # configure server initial conditions handlers
         self.start_time = start_time
         server_initial_conditions_handlers = [
@@ -413,6 +415,13 @@ class MineDojoSim(gym.Env):
         Return:
             Agent’s initial observation.
         """
+        episode_id = str(uuid.uuid4())
+
+        xml = etree.fromstring(self._sim_spec.to_xml(episode_id))
+        raw_obs = self._bridge_env.reset(episode_id, [xml])[0]
+        obs, info = self._process_raw_obs(raw_obs)
+        self._prev_obs, self._prev_info = deepcopy(obs), deepcopy(info)
+        return obs
         obs_n = {}
         info_n = {}
         episode_id = str(uuid.uuid4())
